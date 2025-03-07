@@ -1,0 +1,69 @@
+<?php
+
+class Comment {
+    private $conn;
+    private $table = 'comments';
+    
+    // Propriétés
+    public $id;
+    public $image_id;
+    public $user_id;
+    public $comment;
+    public $created_at;
+    
+    public function __construct() {
+        $this->conn = Database::getInstance()->getConnection();
+    }
+    
+    // Créer un nouveau commentaire
+    public function create() {
+        $query = "INSERT INTO " . $this->table . " 
+                  SET image_id = :image_id, 
+                      user_id = :user_id, 
+                      comment = :comment";
+        
+        $stmt = $this->conn->prepare($query);
+        
+        // Nettoyer et sécuriser les données
+        $this->comment = htmlspecialchars(strip_tags($this->comment));
+        
+        // Lier les paramètres
+        $stmt->bindParam(':image_id', $this->image_id);
+        $stmt->bindParam(':user_id', $this->user_id);
+        $stmt->bindParam(':comment', $this->comment);
+        
+        // Exécuter la requête
+        if ($stmt->execute()) {
+            $this->id = $this->conn->lastInsertId();
+            return true;
+        }
+        
+        return false;
+    }
+    
+    // Récupérer les commentaires d'une image
+    public function getByImageId($imageId) {
+        $query = "SELECT c.*, u.username 
+                  FROM " . $this->table . " c
+                  JOIN users u ON c.user_id = u.id
+                  WHERE c.image_id = :image_id
+                  ORDER BY c.created_at ASC";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':image_id', $imageId);
+        $stmt->execute();
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
+    // Supprimer un commentaire
+    public function delete() {
+        $query = "DELETE FROM " . $this->table . " WHERE id = :id AND user_id = :user_id";
+        
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(':id', $this->id);
+        $stmt->bindParam(':user_id', $this->user_id);
+        
+        return $stmt->execute();
+    }
+} 
