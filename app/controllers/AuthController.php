@@ -83,46 +83,62 @@ class AuthController {
     
     public function login() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
+            $identifier = trim($_POST['identifier']);
             $password = $_POST['password'];
             $remember = isset($_POST['remember']) ? true : false;
             
             $errors = [];
             
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $errors[] = "L'adresse email n'est pas valide.";
+            if (empty($identifier)) {
+                $errors[] = "Veuillez entrer votre nom d'utilisateur ou votre email.";
             }
             
-            if (empty($errors) && $this->user->findByEmail($email)) {
-                if (!$this->user->verified) {
-                    $errors[] = "Votre compte n'a pas été vérifié. Veuillez vérifier votre email pour activer votre compte.";
+            if (empty($password)) {
+                $errors[] = "Veuillez entrer votre mot de passe.";
+            }
+            
+            if (empty($errors)) {
+                $isEmail = filter_var($identifier, FILTER_VALIDATE_EMAIL);
+                
+                $userFound = false;
+                
+                if ($isEmail) {
+                    $userFound = $this->user->findByEmail($identifier);
                 } else {
-                    if (password_verify($password, $this->user->password)) {
-                        $_SESSION['user_id'] = $this->user->id;
-                        $_SESSION['username'] = $this->user->username;
-                        
-                        if ($remember) {
-                            $token = bin2hex(random_bytes(32));
-                            $expiry = time() + (30 * 24 * 60 * 60); // 30 jours
-                            
-                            $this->user->storeRememberToken($token, $expiry);
-                            
-                            setcookie('remember_token', $token, $expiry, '/', '', false, true);
-                        }
-                        
-                        $_SESSION['flash'] = [
-                            'type' => 'success',
-                            'message' => 'Vous êtes maintenant connecté !'
-                        ];
-                        
-                        header('Location: /');
-                        exit;
-                    } else {
-                        $errors[] = "Mot de passe incorrect.";
-                    }
+                    $userFound = $this->user->findByUsername($identifier);
                 }
-            } else {
-                $errors[] = "Aucun compte n'est associé à cette adresse email.";
+                
+                if ($userFound) {
+                    if (!$this->user->verified) {
+                        $errors[] = "Votre compte n'a pas été vérifié. Veuillez vérifier votre email pour activer votre compte.";
+                    } else {
+                        if (password_verify($password, $this->user->password)) {
+                            $_SESSION['user_id'] = $this->user->id;
+                            $_SESSION['username'] = $this->user->username;
+                            
+                            if ($remember) {
+                                $token = bin2hex(random_bytes(32));
+                                $expiry = time() + (30 * 24 * 60 * 60); // 30 jours
+                                
+                                $this->user->storeRememberToken($token, $expiry);
+                                
+                                setcookie('remember_token', $token, $expiry, '/', '', false, true);
+                            }
+                            
+                            $_SESSION['flash'] = [
+                                'type' => 'success',
+                                'message' => 'Vous êtes maintenant connecté !'
+                            ];
+                            
+                            header('Location: /');
+                            exit;
+                        } else {
+                            $errors[] = "Mot de passe incorrect.";
+                        }
+                    }
+                } else {
+                    $errors[] = "Aucun compte n'est associé à cet identifiant.";
+                }
             }
             
             if (!empty($errors)) {
@@ -130,7 +146,7 @@ class AuthController {
                     'type' => 'danger',
                     'message' => implode('<br>', $errors)
                 ];
-                $_SESSION['form_data'] = ['email' => $email];
+                $_SESSION['form_data'] = ['identifier' => $identifier];
                 header('Location: /login');
                 exit;
             }

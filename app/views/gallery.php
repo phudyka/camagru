@@ -2,21 +2,16 @@
 $pageTitle = 'Galerie';
 require_once ROOT_PATH . '/views/templates/header.php';
 
-// Charger le contrôleur de la galerie
 require_once ROOT_PATH . '/controllers/GalleryController.php';
 $galleryController = new GalleryController();
 
-// Récupérer le numéro de page depuis l'URL
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$page = max(1, $page); // S'assurer que la page est au moins 1
+$page = max(1, $page);
 
-// Nombre d'images par page
 $perPage = 12;
 
-// Récupérer les images pour la page actuelle
 $images = $galleryController->getImages($page, $perPage);
 
-// Récupérer le nombre total d'images pour la pagination
 $totalImages = $galleryController->getTotalImagesCount();
 $totalPages = ceil($totalImages / $perPage);
 ?>
@@ -89,7 +84,6 @@ $totalPages = ceil($totalImages / $perPage);
     <?php endforeach; ?>
 </div>
 
-<!-- Pagination -->
 <?php if ($totalPages > 1): ?>
 <nav aria-label="Pagination de la galerie">
     <ul class="pagination justify-content-center">
@@ -116,7 +110,6 @@ $totalPages = ceil($totalImages / $perPage);
 
 <?php endif; ?>
 
-<!-- Modal pour afficher les commentaires sur mobile -->
 <div class="modal fade" id="commentsModal" tabindex="-1" aria-labelledby="commentsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -141,7 +134,6 @@ $totalPages = ceil($totalImages / $perPage);
     </div>
 </div>
 
-<!-- Modal de confirmation de suppression -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -162,7 +154,6 @@ $totalPages = ceil($totalImages / $perPage);
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Gestion des likes
     document.querySelectorAll('.like-btn').forEach(button => {
         button.addEventListener('click', function() {
             <?php if (!isset($_SESSION['user_id'])): ?>
@@ -197,13 +188,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Gestion des commentaires sur mobile
     document.querySelectorAll('.comment-btn').forEach(button => {
         button.addEventListener('click', function() {
             const imageId = this.getAttribute('data-id');
             const commentsContainer = document.getElementById('comments-' + imageId);
             
-            // Sur mobile, ouvrir le modal
             if (window.innerWidth < 768) {
                 const modalCommentsContainer = document.getElementById('modal-comments-container');
                 modalCommentsContainer.innerHTML = commentsContainer.innerHTML;
@@ -250,14 +239,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                     commentsContainer.appendChild(newComment);
                     
-                    // Mettre à jour le compteur de commentaires
                     const commentsCount = document.querySelector(`.comment-btn[data-id="${imageId}"] .comments-count`);
                     commentsCount.textContent = parseInt(commentsCount.textContent) + 1;
                     
-                    // Réinitialiser le formulaire
                     commentInput.value = '';
                     
-                    // Si le modal est ouvert, mettre à jour son contenu aussi
                     const modalCommentsContainer = document.getElementById('modal-comments-container');
                     if (modalCommentsContainer.innerHTML !== '') {
                         modalCommentsContainer.innerHTML = commentsContainer.innerHTML;
@@ -270,7 +256,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Gestion des formulaires de commentaires dans la galerie
     document.querySelectorAll('.comment-form').forEach(form => {
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -278,7 +263,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Gestion du formulaire de commentaire dans le modal
     const modalCommentForm = document.getElementById('modal-comment-form');
     if (modalCommentForm) {
         modalCommentForm.addEventListener('submit', function(e) {
@@ -287,7 +271,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Gestion de la suppression d'images
     let imageToDelete = null;
     const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
     
