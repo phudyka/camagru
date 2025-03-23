@@ -1,6 +1,6 @@
 # Camagru
 
-![Camagru Miniature](https://via.placeholder.com/800x400)
+![Camagru Miniature](camagru.png)
 
 ## 📷 Description
 
