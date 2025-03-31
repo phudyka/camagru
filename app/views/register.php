@@ -1,12 +1,16 @@
 <?php 
 $pageTitle = 'Register';
-require_once ROOT_PATH . '/views/templates/header.php'; 
+require_once ROOT_PATH . '/views/templates/header.php';
+require_once ROOT_PATH . '/utils/CSRFProtection.php';
+$csrf_token = CSRFProtection::generateToken();
 ?>
 
 <div class="form-container fade-in">
     <h2 class="form-title">Create an Account</h2>
     
     <form action="/auth/register" method="POST" id="register-form">
+        <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
+        
         <div class="mb-3">
             <label for="username" class="form-label">Username</label>
             <input type="text" class="form-control" id="username" name="username" required minlength="3" maxlength="50">

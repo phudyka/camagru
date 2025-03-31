@@ -37,10 +37,8 @@ class Image {
         return false;
     }
     
-    public function getAll($limit = 10, $offset = 0) {
-        $query = "SELECT i.*, u.username, 
-                  (SELECT COUNT(*) FROM likes WHERE image_id = i.id) as likes_count,
-                  (SELECT COUNT(*) FROM comments WHERE image_id = i.id) as comments_count
+    public function getAll($limit = 12, $offset = 0) {
+        $query = "SELECT i.*, u.username 
                   FROM " . $this->table . " i
                   JOIN users u ON i.user_id = u.id
                   ORDER BY i.created_at DESC

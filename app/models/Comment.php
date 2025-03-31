@@ -15,7 +15,6 @@ class Comment {
         $this->conn = Database::getInstance()->getConnection();
     }
     
-    // Créer un nouveau commentaire
     public function create() {
         $query = "INSERT INTO " . $this->table . " 
                   SET image_id = :image_id, 
@@ -24,15 +23,12 @@ class Comment {
         
         $stmt = $this->conn->prepare($query);
         
-        // Nettoyer et sécuriser les données
         $this->comment = htmlspecialchars(strip_tags($this->comment));
         
-        // Lier les paramètres
         $stmt->bindParam(':image_id', $this->image_id);
         $stmt->bindParam(':user_id', $this->user_id);
         $stmt->bindParam(':comment', $this->comment);
         
-        // Exécuter la requête
         if ($stmt->execute()) {
             $this->id = $this->conn->lastInsertId();
             return true;
@@ -41,7 +37,6 @@ class Comment {
         return false;
     }
     
-    // Récupérer les commentaires d'une image
     public function getByImageId($imageId) {
         $query = "SELECT c.*, u.username 
                   FROM " . $this->table . " c
@@ -56,7 +51,6 @@ class Comment {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
-    // Supprimer un commentaire
     public function delete() {
         $query = "DELETE FROM " . $this->table . " WHERE id = :id AND user_id = :user_id";
         

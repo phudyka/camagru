@@ -18,32 +18,43 @@ class User {
     }
     
     public function create() {
-        $query = "INSERT INTO " . $this->table . " 
-                  SET username = :username, 
-                      email = :email, 
-                      password = :password,
-                      verification_token = :verification_token,
-                      notifications_enabled = :notifications_enabled";
+        $this->conn->beginTransaction();
         
-        $stmt = $this->conn->prepare($query);
-        
-        $this->username = htmlspecialchars(strip_tags($this->username));
-        $this->email = htmlspecialchars(strip_tags($this->email));
-        $this->password = password_hash($this->password, PASSWORD_DEFAULT);
-        $this->verification_token = bin2hex(random_bytes(32));
-        
-        $stmt->bindParam(':username', $this->username);
-        $stmt->bindParam(':email', $this->email);
-        $stmt->bindParam(':password', $this->password);
-        $stmt->bindParam(':verification_token', $this->verification_token);
-        $stmt->bindParam(':notifications_enabled', $this->notifications_enabled, PDO::PARAM_BOOL);
-        
-        if ($stmt->execute()) {
+        try {
+            $query = "INSERT INTO " . $this->table . " 
+                      SET username = :username, 
+                          email = :email, 
+                          password = :password, 
+                          verification_token = :verification_token,
+                          notifications_enabled = :notifications_enabled";
+            
+            $stmt = $this->conn->prepare($query);
+            
+            // Nettoyer et sécuriser les données
+            $this->username = htmlspecialchars(strip_tags($this->username));
+            $this->email = htmlspecialchars(strip_tags($this->email));
+            
+            // Hacher le mot de passe
+            $this->password = password_hash($this->password, PASSWORD_DEFAULT);
+            
+            // Lier les paramètres
+            $stmt->bindParam(':username', $this->username);
+            $stmt->bindParam(':email', $this->email);
+            $stmt->bindParam(':password', $this->password);
+            $stmt->bindParam(':verification_token', $this->verification_token);
+            $stmt->bindParam(':notifications_enabled', $this->notifications_enabled);
+            
+            // Exécuter la requête
+            $stmt->execute();
             $this->id = $this->conn->lastInsertId();
+            
+            $this->conn->commit();
             return true;
+        } catch (PDOException $e) {
+            $this->conn->rollBack();
+            error_log("Erreur lors de la création de l'utilisateur: " . $e->getMessage());
+            return false;
         }
-        
-        return false;
     }
     
     public function findByEmail($email) {

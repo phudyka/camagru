@@ -58,7 +58,7 @@ Projet réalisé selon les normes de l'école 42:
 
 ## 👤 Auteur
 
-- phudyka
+- [Votre Nom](https://github.com/votre-username)
 
 ---
 *Projet réalisé dans le cadre du cursus à l'école 42*

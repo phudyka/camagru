@@ -8,40 +8,43 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
             <a class="navbar-brand" href="/">Camagru</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Accueil</a>
+                        <a class="nav-link" href="/">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/gallery">Galerie</a>
+                        <a class="nav-link" href="/gallery">Gallery</a>
                     </li>
                     <?php if (isset($_SESSION['user_id'])): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="/camera">Caméra</a>
+                        <a class="nav-link" href="/camera">Camera</a>
                     </li>
                     <?php endif; ?>
                 </ul>
                 <ul class="navbar-nav">
                     <?php if (isset($_SESSION['user_id'])): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="/profile">Mon Profil</a>
+                        <span class="nav-link">Welcome, <?= htmlspecialchars($_SESSION['username']) ?></span>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/logout">Déconnexion</a>
+                        <a class="nav-link" href="/profile">Profile</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/logout">Logout</a>
                     </li>
                     <?php else: ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="/login">Connexion</a>
+                        <a class="nav-link" href="/login">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/register">Inscription</a>
+                        <a class="nav-link" href="/register">Register</a>
                     </li>
                     <?php endif; ?>
                 </ul>

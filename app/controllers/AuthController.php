@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/User.php';
+require_once __DIR__ . '/../utils/CSRFProtection.php';
 
 class AuthController {
     private $user;
@@ -12,6 +13,15 @@ class AuthController {
     
     public function register() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!isset($_POST['csrf_token']) || !CSRFProtection::verifyToken($_POST['csrf_token'])) {
+                $_SESSION['flash'] = [
+                    'type' => 'danger',
+                    'message' => 'Invalid form submission. Please try again.'
+                ];
+                header('Location: /register');
+                exit;
+            }
+            
             $username = htmlspecialchars(trim($_POST['username']));
             $email = filter_var(trim($_POST['email']), FILTER_SANITIZE_EMAIL);
             $password = $_POST['password'];
@@ -20,32 +30,40 @@ class AuthController {
             
             $errors = [];
             
-            if (strlen($username) < 3 || strlen($username) > 50) {
-                $errors[] = "Le nom d'utilisateur doit contenir entre 3 et 50 caractères.";
+            if (empty($username)) {
+                $errors[] = "Username is required.";
+            } elseif (strlen($username) < 3 || strlen($username) > 50) {
+                $errors[] = "Username must be between 3 and 50 characters.";
+            } elseif (!preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
+                $errors[] = "Username can only contain letters, numbers, and underscores.";
             }
             
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $errors[] = "L'adresse email n'est pas valide.";
+            if (empty($email)) {
+                $errors[] = "Email is required.";
+            } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $errors[] = "Invalid email format.";
             }
             
-            if (strlen($password) < 8) {
-                $errors[] = "Le mot de passe doit contenir au moins 8 caractères.";
-            }
-            
-            if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
-                $errors[] = "Le mot de passe doit contenir au moins une majuscule, un chiffre et un caractère spécial.";
+            if (empty($password)) {
+                $errors[] = "Password is required.";
+            } elseif (strlen($password) < 8) {
+                $errors[] = "Password must be at least 8 characters.";
+            } elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
+                $errors[] = "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.";
             }
             
             if ($password !== $confirmPassword) {
-                $errors[] = "Les mots de passe ne correspondent pas.";
+                $errors[] = "Passwords do not match.";
             }
             
-            if ($this->user->findByUsername($username)) {
-                $errors[] = "Ce nom d'utilisateur est déjà utilisé.";
-            }
-            
-            if ($this->user->findByEmail($email)) {
-                $errors[] = "Cette adresse email est déjà utilisée.";
+            if (empty($errors)) {
+                if ($this->user->findByUsername($username)) {
+                    $errors[] = "Username already exists.";
+                }
+                
+                if ($this->user->findByEmail($email)) {
+                    $errors[] = "Email already exists.";
+                }
             }
             
             if (empty($errors)) {
@@ -59,7 +77,7 @@ class AuthController {
                     
                     $_SESSION['flash'] = [
                         'type' => 'success',
-                        'message' => 'Votre compte a été créé avec succès ! Veuillez vérifier votre email pour activer votre compte.'
+                        'message' => 'Your account has been created! Please check your email to verify your account.'
                     ];
                     
                     header('Location: /login');

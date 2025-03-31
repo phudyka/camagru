@@ -1,12 +1,16 @@
 <?php 
 $pageTitle = 'Login';
-require_once ROOT_PATH . '/views/templates/header.php'; 
+require_once ROOT_PATH . '/views/templates/header.php';
+require_once ROOT_PATH . '/utils/CSRFProtection.php';
+$csrf_token = CSRFProtection::generateToken();
 ?>
 
 <div class="form-container fade-in">
     <h2 class="form-title">Login</h2>
     
     <form action="/auth/login" method="POST" id="login-form">
+        <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
+        
         <div class="mb-3">
             <label for="identifier" class="form-label">Username or Email</label>
             <input type="text" class="form-control" id="identifier" name="identifier" required>
